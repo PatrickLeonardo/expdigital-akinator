@@ -9,11 +9,21 @@
     
     <center>
         
-        <h1>JAkinator</h1>  
+        <h1>JAkinator</h1>
+        
+        <label>Começar de novo?</label>
+        <button id="restart">Sim</button>
         
     </center>
     
     <script src="main.js" type="module"></script>
+    
+    <script>
+        const buttonRestart = document.getElementById("restart");
+        buttonRestart.addEventListener("click", () => {
+            location.reload();
+        });
+    </script> 
     
 </body>
 </html>

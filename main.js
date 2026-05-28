@@ -28,7 +28,7 @@ const answerOfQuestion = (answer, atributo) => {
         
         if(answer && personagem[atributo]) {
             buff.push(personagem);
-        } else if(!personagem[atributo]) {
+        } else if(!answer && !personagem[atributo]) {
             buff.push(personagem);
         }
 
@@ -91,9 +91,14 @@ const startLoop = () => {
 
         answerOfQuestion(answer, choiced["question"]["atributo"]);
         
+        if(vetPersonagens.length == 0) {
+            alert("Personagem não encontrado...");
+            break;
+        } else if(vetPersonagens.length == 1) {
+            alert("Seu Personagem é " + vetPersonagens[0]["nome"])
+        }
+        
     }
-
-    alert("Seu Personagem é " + vetPersonagens[0]["nome"])
 
 }
 
