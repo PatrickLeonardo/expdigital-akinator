@@ -13,14 +13,14 @@ for(let key in personagens) {
     vetPersonagens.push(personagens[key]);
 }
 
-const choiceRandomQuestion = () => {
-    const random = parseInt(Math.random() * vetAtributos.length);
-    const choiced = vetAtributos[random];
+const escolherPerguntaAleatoria = () => {
+    const idxAleatorio = parseInt(Math.random() * vetAtributos.length);
+    const escolha = vetAtributos[idxAleatorio];
 
-    return { "idx": random, "question": choiced };    
+    return { "idx": idxAleatorio, "question": escolha };    
 }
 
-const answerOfQuestion = (answer, atributo) => {
+const aplicarRespostaNaPergunta = (answer, atributo) => {
     
     const buff = [];
 
@@ -38,7 +38,7 @@ const answerOfQuestion = (answer, atributo) => {
 
 }
 
-const removeAttributeByQuestionAndAnswer = (question, answer) => {
+const removerAtributosPorPerguntaEResposta = (question, answer) => {
     
     const atributosDistintos = [
         ["adulto", "crianca"],
@@ -47,59 +47,152 @@ const removeAttributeByQuestionAndAnswer = (question, answer) => {
         ["vive_na_pre_historia", "vive_no_espaco", "mora_na_roca"]
     ]
     
-    let buffVetAtributos = false;
+    let buffVetAtributos = [];
+    let thisQuestionRemoved = false;
 
     atributosDistintos.map(atributos => {
         if(atributos.includes(question)) {
             buffVetAtributos = atributos;
+            thisQuestionRemoved = true;
         }
     });
      
-    if(buffVetAtributos) {
-        
+    if(buffVetAtributos.length) {
         buffVetAtributos.forEach(atributo => {
             
             if(question == atributo) {
                 if(!answer) {
-                    buffVetAtributos = [atributo];
+                    if(!buffVetAtributos.length == 2) buffVetAtributos = [atributo]; 
                 }
             }
             
-        });
-        
-        buffVetAtributos.forEach(atributo => {
-            const idxToRemove = vetAtributos.findIndex(a => a["atributo"] == atributo);
-            vetAtributos.splice(idxToRemove, 1);
-        });
-        
-        return true;
+        }); 
     }
 
-    return false;
+    vetAtributos.forEach(atributo => {
+
+        let atributoExiste = false;
+
+        vetPersonagens.forEach(personagem => {
+
+            if(personagem[atributo["atributo"]] && !atributoExiste) {
+                atributoExiste = true;
+            }
+
+        });
+
+        if(!atributoExiste) buffVetAtributos.push(atributo["atributo"]);
+
+    });
+
+    buffVetAtributos.forEach(atributo => {
+        const idxParaRemover = vetAtributos.findIndex(a => a["atributo"] == atributo);
+        vetAtributos.splice(idxParaRemover, 1);
+    });
+
+    return thisQuestionRemoved;
 }
 
-const startLoop = () => {
+async function processarResposta(answer, escolha, msgBox) { 
     
-    while(vetPersonagens.length != 1) {
+    if(!removerAtributosPorPerguntaEResposta(escolha["question"]["atributo"], answer)) {
+        vetAtributos.splice(escolha["idx"], 1);
+    }
+    
+    aplicarRespostaNaPergunta(answer, escolha["question"]["atributo"]);
+    
+    if(vetPersonagens.length == 0) {
         
-        const choiced = choiceRandomQuestion();
-        const answer = confirm(choiced["question"]["pergunta"]);
-        
-        if(!removeAttributeByQuestionAndAnswer(choiced["question"]["atributo"], answer)) {
-            vetAtributos.splice(choiced["idx"], 1);
-        }
+        msgBox.innerHTML = ("Personagem não encontrado...");    
+        return true;
 
-        answerOfQuestion(answer, choiced["question"]["atributo"]);
+    } else if(vetPersonagens.length == 1) {
+
+        msgBox.innerHTML = ("Seu Personagem é " + vetPersonagens[0]["nome"])
+        return true;
+
+    } else if(vetAtributos.length == 0) {
+
+        let idx = 0;
+        answer = false;
+        const yesBtn = document.getElementById("yesBtn");
+        const noBtn = document.getElementById("noBtn");
+
+        while(!answer && idx < vetPersonagens.length) {
+             
+            msgBox.innerHTML = `Seu personagem é ${vetPersonagens[idx]["nome"]}?`;
+            
+            await (async () => {
+                
+                return new Promise((resolve) => {
+                    
+                    yesBtn.onclick = () => {
+                        answer = true;
+                        resolve(true);
+                    }
+
+                    noBtn.onclick = () => {
+                        resolve(true);
+                    }
+
+                });
+                
+            })();
+            
+            idx ++;
+            
+        }
         
-        if(vetPersonagens.length == 0) {
-            alert("Personagem não encontrado...");
-            break;
-        } else if(vetPersonagens.length == 1) {
-            alert("Seu Personagem é " + vetPersonagens[0]["nome"])
+        if(answer == false) {
+            msgBox.innerHTML = ("Personagem não encontrado...");
+            yesBtn.style.visibility = "hidden";
+            noBtn.style.visibility = "hidden";
+            restartBtn.style.visibility = "visible"; 
         }
         
     }
+    
+}
+
+async function iniciarJogo () {
+
+    const msgBox = document.getElementById("question");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const restartBtn = document.getElementById("restart");
+    
+    restartBtn.style.visibility = "hidden";
+    restartBtn.addEventListener("click", () => location.reload())
+
+    while(vetAtributos.length != 0 && vetPersonagens.length != 1) {
+
+        const escolha = escolherPerguntaAleatoria();
+        question.innerHTML = escolha["question"]["pergunta"];
+        
+        await (async () => {
+            
+            return new Promise((resolve) => {
+                
+                yesBtn.onclick = async () => {
+                    await processarResposta(true, escolha, msgBox); 
+                    resolve(true);
+                }
+
+                noBtn.onclick = async () => {
+                    await processarResposta(false, escolha, msgBox);        
+                    resolve(true);
+                }
+
+            });
+            
+        })();
+        
+    }
+    
+    yesBtn.style.visibility = "hidden";
+    noBtn.style.visibility = "hidden";
+    restartBtn.style.visibility = "visible";
 
 }
 
-startLoop();
+iniciarJogo();

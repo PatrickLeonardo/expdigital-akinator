@@ -4,26 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akinator Turma da Mônica</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     
     <center>
         
-        <h1>JAkinator</h1>
+        <h1>Akinator Turma da Mônica</h1>
         
-        <label>Começar de novo?</label>
-        <button id="restart">Sim</button>
+        <label id="question"></label>
+        <br>
+        <button id="yesBtn">Sim</button>
+        <button id="noBtn">Não</button>
+        <br>
+        <button id="restart">Reiniciar Jogo</button> 
+        <br><br>
+        <label id="result"></label>
         
     </center>
     
     <script src="main.js" type="module"></script>
-    
-    <script>
-        const buttonRestart = document.getElementById("restart");
-        buttonRestart.addEventListener("click", () => {
-            location.reload();
-        });
-    </script> 
     
 </body>
 </html>
